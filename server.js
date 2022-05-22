@@ -30,6 +30,10 @@ console.log('the server is running');
 
 
 /*web socket */
+/*registery of players */
+
+let players = [];
+
 const { Server } = require("socket.io");
 const io = new Server(app);
 
@@ -44,10 +48,6 @@ function serverLog(...messages){
 }
 
 serverLog('a page connected to the server: '+socket.id);
-
-socket.on('disconnect', () => {
-    serverLog('a page disconnected from the server: '+socket.id);
-});
 
 /*join room */
 socket.on('join_room', (payload) => {
@@ -81,7 +81,7 @@ socket.on('join_room', (payload) => {
 
     socket.join(room);
     io.in(room).fetchSockets().then((sockets) =>{
-        serverLog('There are '+sockets.length+' clients in the room, '+room);
+
         if ((typeof sockets == 'undefined') || (sockets === null) || !sockets.includes(socket)){
             response = {};
             response.result = 'fail';
@@ -91,17 +91,43 @@ socket.on('join_room', (payload) => {
         }
 
         else{
-            response = {};
-            response.result = 'sucess';
-            response.room = room;
-            response.username = username;
-            response.count = sockets.length;
-
-            io.of('/').to(room).emit('join_room_response',response);
+            players[socket.id] = {
+                username: username,
+                room: room
+            }
+            for(const member of sockets){
+                let room = players[member.id].room;
+                response = {
+                    result: 'sucess',
+                    socket_id: member.id,
+                    room: players[member.id].room,
+                    username: players[member.id].username,
+                    count: sockets.length,
+                }
+            io.of('/').to(room).emit('join_room_response', response);
             serverLog('join_room succeeded', JSON.stringify(response));
 
         }
+    }
         });
+});
+
+socket.on('disconnect', () => {
+    serverLog('a page disconnected from the server: '+socket.id);
+    if((typeof players[socket.id] != 'undefined') && (players[socket.id] != null)){
+        let payload = {
+            username: players[socket.id].username,
+            room: players[socket.id].room,
+            count: Object.keys(players).length - 1,
+            socket_id: socket.id,
+        };
+
+        let room = players[socket.id].room;
+        delete players[socket.id];
+        /*who left the room */
+        io.of("/").to(room).emit('player_disconnected',payload);
+        serverLog('player_disconnected succeeded ',JSON.stringify(payload));
+    }
 });
 
 /*send chat message */
