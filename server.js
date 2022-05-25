@@ -112,6 +112,79 @@ socket.on('join_room', (payload) => {
         });
 });
 
+
+/*Invite message */
+socket.on('invite', (payload) => {
+    serverLog('Server received a command','\'invite\'',JSON.stringify(payload));
+    if ((typeof payload == 'undefined') || (payload === null)){
+        response = {};
+        response.result = 'fail';
+        response.message = 'client did not send a payload';
+        socket.emit('invite_response',response);
+        serverLog('invite command failed', JSON.stringify(response));
+        return;
+    }
+    let requested_user = payload.requested_user;
+    let room = players[socket.id].room;
+    let username = players[socket.id].username;
+    if ((typeof requested_user == 'undefined') || (requested_user === null) || (requested_user === "")){
+        response = {
+            result: 'fail',
+            message:'client did not request a valid user to invite to play',
+        }
+        socket.emit('invite_response',response);
+        serverLog('invite command failed', JSON.stringify(response));
+        return;
+    }
+    if ((typeof room == 'undefined') || (room === null) || (room === "")) {
+    response = {
+        result: 'fail',
+        message:'user that was invited is not in a room',
+    }
+        socket.emit('invite_response',response);
+        serverLog('invite command failed', JSON.stringify(response));
+        return;
+    }
+    if ((typeof username == 'undefined') || (room === null) || (username === "")) {
+        response = {
+            result: 'fail',
+            message:'user that was invited does not have a name registered',
+        }
+            socket.emit('invite_response',response);
+            serverLog('invite command failed', JSON.stringify(response));
+            return;
+        }
+
+        /*make sure player is present */
+    io.in(room).allSockets().then((sockets) =>{
+        /*invitees not in room */
+        if ((typeof sockets == 'undefined') || (sockets === null) || !sockets.has(socket)){
+            response = {
+                result: 'fail',
+                message:'user that was invited is no longer in the room',
+            }
+            socket.emit('join_room_response',response);
+            serverLog('join_room command failed', JSON.stringify(response));
+        }
+/*invitee is in the room */
+        else{
+            response = {
+                result: 'success',
+                socket_id: requested_user
+            }
+            socket.emit("invite_response", response);
+            response = {
+                result: 'success',
+                socket_id: socket.id
+            }
+            socket.to(requested_user).emit("invited", response);
+            serverLog('invite command succeeded', JSON.stringify(response));
+
+        }
+    }
+        );
+});
+
 socket.on('disconnect', () => {
     serverLog('a page disconnected from the server: '+socket.id);
     if((typeof players[socket.id] != 'undefined') && (players[socket.id] != null)){
