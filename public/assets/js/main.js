@@ -73,7 +73,7 @@ socket.on('invite_response', (payload) =>{
         return;
     }
     let newNode = makeInvitedButton();
-    $('socket_'+payload.socket_id+' button').replaceWith(newNode);
+    $('.socket_'+payload.socket_id+' button').replaceWith(newNode);
 })
 
 
