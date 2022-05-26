@@ -13,7 +13,7 @@ function getIRIParameterValue(requestedKey){
 }
 
 let username = decodeURI(getIRIParameterValue('username'));
-if ((typeof username == 'undefined || (username === null') || (username === 'null') || (username === "")){
+if ((typeof username == 'undefined' || (username === null) || (username === 'null') || (username === ""))){
     username = "Anonymous_"+Math.floor(Math.random()*1000);
 }
 
@@ -28,12 +28,12 @@ socket.on('log',function(array) {
 
 });
 
-function makeInviteButton(){
+function makeInviteButton(socket_id){
     let newHTML = "<button type='button' class='btn btn-outline-primary'>Invite</button>";
     let newNode = $(newHTML);
     newNode.click( () => {
         let payload = {
-            requested_user:socket_id
+            requested_user: socket_id
         }
             console.log('****Client log message, sending \'invite\' command: '+JSON.stringify(payload));
             socket.emit('invite',payload)

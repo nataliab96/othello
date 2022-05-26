@@ -158,13 +158,14 @@ socket.on('invite', (payload) => {
         /*make sure player is present */
     io.in(room).allSockets().then((sockets) =>{
         /*invitees not in room */
-        if ((typeof sockets == 'undefined') || (sockets === null) || !sockets.has(socket)){
+        if ((typeof sockets == 'undefined') || (sockets === null) || !sockets.has(requested_user)){
             response = {
                 result: 'fail',
                 message:'user that was invited is no longer in the room',
             }
-            socket.emit('join_room_response',response);
-            serverLog('join_room command failed', JSON.stringify(response));
+            socket.emit('invite_response',response);
+            serverLog('invite command failed', JSON.stringify(response));
+            return;
         }
 /*invitee is in the room */
         else{
