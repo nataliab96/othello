@@ -315,10 +315,11 @@ else if((old_board[row][column] === ' ') && (board[row][column] === 'w')){
 }
 
 else if((old_board[row][column] === ' ') && (board[row][column] === 'b')){
-graphic = "empty_to_black.gif";
-altTag = "black token";
-
+    graphic = "empty_to_black.gif";
+    altTag = "black token";
 }
+
+
 
 else if((old_board[row][column] === 'w') && (board[row][column] === ' ')){
     graphic = "white_to_empty.gif";
@@ -327,9 +328,8 @@ else if((old_board[row][column] === 'w') && (board[row][column] === ' ')){
 }
 
 else if((old_board[row][column] === 'b') && (board[row][column] === ' ')){
-graphic = "black_to_empty.gif";
+    graphic = "black_to_empty.gif";
 altTag = "empty space";
-
 }
 
 else if((old_board[row][column] === 'w') && (board[row][column] === 'b')){
@@ -339,8 +339,8 @@ else if((old_board[row][column] === 'w') && (board[row][column] === 'b')){
 }
 
 else if((old_board[row][column] === 'b') && (board[row][column] === 'w')){
-graphic = "black_to_white.gif";
-altTag = "white token";
+    graphic = "black_to_white.gif";
+    altTag = "white token";
 
 }
 
@@ -357,15 +357,11 @@ if (board[row][column] === ' '){
 
 }
 
-
- }
-}
-}
 old_board = board;
 
-})
+}
 
-$( () => {
+$(() => {
     let request = {};
     request.room = chatRoom;
     request.username = username;
@@ -381,4 +377,4 @@ $( () => {
             return false
         }
     })
-});
+    })}}});
