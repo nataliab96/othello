@@ -107,6 +107,10 @@ socket.on('join_room', (payload) => {
             io.of('/').to(room).emit('join_room_response', response);
             serverLog('join_room succeeded', JSON.stringify(response));
 
+            if(room !== "Lobby"){
+                send_game_update(socket,room,'initial update');
+            }
+
         }
     }
         });
@@ -398,3 +402,113 @@ socket.on('send_chat_message', (payload) => {
 
 });
 });
+
+/* game state */
+let games = [];
+function create_new_game (){
+    let new_game = {};
+    new_game.player_white = {};
+    new_game.player_white.socket = "";
+    new_game.player_white.username = "";
+    new_game.player_black = {};
+    new_game.player_black.socket = "";
+    new_game.player_black.username = "";
+
+    var d = new Date();
+    new_game.last_move_time = d.getTime();
+    new_game.whose_turn = 'white';
+
+    new_game.board = [
+        [' ',' ',' ',' ',' ',' ',' ',' '],
+        [' ',' ',' ',' ',' ',' ',' ',' '],
+        [' ',' ',' ',' ',' ',' ',' ',' '],
+        [' ',' ',' ','w','b',' ',' ',' '],
+        [' ',' ',' ','b','w',' ',' ',' '],
+        [' ',' ',' ',' ',' ',' ',' ',' '],
+        [' ',' ',' ',' ',' ',' ',' ',' '],
+        [' ',' ',' ',' ',' ',' ',' ',' ']
+    ];
+    return new_game;
+}
+
+function send_game_update(socket, game_id, message) {
+    /* see if game with game id exists */ 
+    if ((typeof games[game_id] == 'undefined') || (games[game_id] === null)) {
+        console.log("No game exists with game_id:" + game_id + ". Making a new game for "+ socket.id);
+        games[game_id] = create_new_game();
+    }
+    
+    /* check only 2 people in the room */
+    
+    io.of('/').to(game_id).allSockets().then((sockets) => {
+
+        const iterator = sockets[Symbol.iterator]();
+        if(sockets.size >= 1) {
+            let first = iterator.next().value;
+            if((games[game_id].player_white.socket != first) &&
+            (games[game_id].player_black.socket != first)) {
+                if (games[game_id].player_white.socket === ""){
+                    console.log("White is assigned to: "+ first);
+                    games[game_id].player_white.socket = first;
+                    games[game_id].player_white.username = players[first].username;
+    
+                }
+               else if (games[game_id].player_black.socket === ""){
+                    console.log("Black is assigned to: "+ first);
+                    games[game_id].player_black.socket = first;
+                    games[game_id].player_black.username = players[first].username;
+    
+                }
+                else {
+                    /*player kicked out */
+                    console.log("Kicking " + first + " out of game: " + game_id);
+                    io.in(first).socketsLeave([game_id]);
+
+                }
+            }
+        }
+
+        if(sockets.size >= 2) {
+            let second = iterator.next().value;
+            if((games[game_id].player_white.socket != second) &&
+            (games[game_id].player_black.socket != second)) {
+                if (games[game_id].player_white.socket === ""){
+                    console.log("White is assigned to: "+ second);
+                    games[game_id].player_white.socket = second;
+                    games[game_id].player_white.username = players[second].username;
+    
+                }
+               else if (games[game_id].player_black.socket === ""){
+                    console.log("Black is assigned to: "+ second);
+                    games[game_id].player_black.socket = second;
+                    games[game_id].player_black.username = players[second].username;
+    
+                }
+                else {
+                    /*player kicked out */
+                    console.log("Kicking " + second + " out of game: " + game_id);
+                    io.in(second).socketsLeave([game_id]);
+                    
+                }
+            }
+        }
+
+
+
+             /* send game update */
+                let payload ={
+                    result: 'success',
+                    game_id: game_id,
+                    game: games[game_id],
+                    message: message,
+                }
+                    io.of("/").to(game_id).emit('game_update', payload);
+
+    })
+    
+    
+    /*check if game is over */
+
+
+}
+
