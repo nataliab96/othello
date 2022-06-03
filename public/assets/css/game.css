@@ -1,14 +1,14 @@
 body {
-    background-color: rgb(177,224,177);
+    background-color: rgb(225, 159, 192);
 }
 
 .headerrow, #messagePane {
-    background-color: rgb(221, 239, 221);
+    background-color: rgb(161, 102, 161);
 }
 
 .join_room_response,
 .left_room_response {
-    background-color: rgb(247, 247, 247);
+    background-color: rgb(236, 84, 233);
 }
 
 .chat_message {
